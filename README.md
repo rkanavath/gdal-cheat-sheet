@@ -338,17 +338,17 @@ Merge all .tifs in output directory into single file
 
 	gdal_merge.py -o output/Merged_Landcover.tif output/*.tif
 
-__BASH functions__  
+__SHELL functions__  
 _Size Functions_  
 This size function echos the pixel dimensions of a given file in the format expected by gdalwarp.
 
-	function gdal_size() {
-		SIZE=$(gdalinfo $1 |\
-			grep 'Size is ' |\
-			cut -d\   -f3-4 |\
-			sed 's/,//g')
-		echo -n "$SIZE"
-	}
+	gdal_size() {
+        SIZE=$("gdalinfo" "$1" |\
+		grep 'Size is ' |\
+		cut -d\   -f3-4 |\
+		sed 's/,//g')
+	echo "$SIZE"
+	}	
 
 This can be used to easily resample one raster to the dimensions of another:
 
@@ -358,51 +358,51 @@ _Extent Functions_
 These extent functions echo the extent of the given file in the order/format expected by gdal_translate -projwin.
 (Originally from [Linfiniti](http://linfiniti.com/2009/09/clipping-rasters-with-gdal-using-polygons/)).
 
-	function gdal_extent() {
+	gdal_extent() {
 		if [ -z "$1" ]; then 
-			echo "Missing arguments. Syntax:"
-			echo "  gdal_extent <input_raster>"
-	    	return
+		   echo "Missing arguments. Syntax:"
+		   echo "gdal_extent <input_raster>"
+		   return
 		fi
-		EXTENT=$(gdalinfo $1 |\
-			grep "Upper Left\|Lower Right" |\
+		EXTENT=$("gdalinfo" "$1" |\
+				    	grep "Upper Left\\|Lower Right" |\
 			sed "s/Upper Left  //g;s/Lower Right //g;s/).*//g" |\
-			tr "\n" " " |\
+			tr "\\n" " " |\
 			sed 's/ *$//g' |\
-			tr -d "[(,]")
-		echo -n "$EXTENT"
+			tr -d "(,")
+		echo "$EXTENT"
 	}
 
-	function ogr_extent() {
+	ogr_extent() {
 		if [ -z "$1" ]; then 
 			echo "Missing arguments. Syntax:"
 			echo "  ogr_extent <input_vector>"
 	    	return
 		fi
-		EXTENT=$(ogrinfo -al -so $1 |\
+		EXTENT=$("ogrinfo" "-al" "-so" "$1" |\
 			grep Extent |\
 			sed 's/Extent: //g' |\
 			sed 's/(//g' |\
 			sed 's/)//g' |\
 			sed 's/ - /, /g')
-		EXTENT=`echo $EXTENT | awk -F ',' '{print $1 " " $4 " " $3 " " $2}'`
-		echo -n "$EXTENT"
+		EXTENT=$(echo "$EXTENT" | "awk" "-F" ',' "{print $1 " " $4 " " $3 " " $2}")
+		echo "$EXTENT"
 	}
 
-	function ogr_layer_extent() {
+	ogr_layer_extent() {
 		if [ -z "$2" ]; then 
 			echo "Missing arguments. Syntax:"
-			echo "  ogr_extent <input_vector> <layer_name>"
+			echo "ogr_extent <input_vector> <layer_name>"
 	    	return
 		fi
-		EXTENT=$(ogrinfo -so $1 $2 |\
+		EXTENT=$("ogrinfo" "-so" "$1" "$2" |\
 			grep Extent |\
 			sed 's/Extent: //g' |\
 			sed 's/(//g' |\
 			sed 's/)//g' |\
 			sed 's/ - /, /g')
-		EXTENT=`echo $EXTENT | awk -F ',' '{print $1 " " $4 " " $3 " " $2}'`
-		echo -n "$EXTENT"
+		EXTENT=$(echo "$EXTENT" | "awk" "-F" ',' '{print $1 " " $4 " " $3 " " $2}')
+		echo "$EXTENT"
 	}
 
 Extents can be passed directly into a gdal_translate command like so:
